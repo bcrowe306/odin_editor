@@ -3,7 +3,7 @@
 A modular, embeddable code editor written in Odin, using SDL3 for windowing
 and rendering. It must be usable both as a standalone demo application and as
 a library embedded inside another game engine editor (e.g. the
-`odin_raylib_engine` editor tooling). Scope of work is strictly limited to
+Rayzr editor (`rayzr`, formerly `odin_raylib_engine`)). Scope of work is strictly limited to
 the `odin_editor/` folder — no other folder in this repository is modified
 as part of this effort.
 
