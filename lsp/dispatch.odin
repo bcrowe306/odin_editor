@@ -170,6 +170,13 @@ client_store_diagnostics :: proc(c: ^Client, params: json.Value) {
 			d.severity = 1
 		}
 		d.source = json_clone_string_field(c, item, "source")
+		if code_val, ok := json_object_get(item, "code"); ok {
+			if code, is_str := json_as_string(code_val); is_str {
+				d.code = strings.clone(code, c.allocator)
+			} else if n, is_num := json_as_int(code_val); is_num {
+				d.code = fmt.aprint(n, allocator = c.allocator)
+			}
+		}
 		if tags_val, ok := json_object_get(item, "tags"); ok {
 			if tags, is_arr := tags_val.(json.Array); is_arr {
 				for tag in tags {
@@ -205,6 +212,7 @@ free_diagnostics :: proc(c: ^Client, list: [dynamic]Diagnostic) {
 	for d in list {
 		delete(d.message, c.allocator)
 		delete(d.source, c.allocator)
+		delete(d.code, c.allocator)
 	}
 	delete(list)
 }

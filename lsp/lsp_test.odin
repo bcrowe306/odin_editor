@@ -647,3 +647,26 @@ test_completion_resolve_fills_documentation :: proc(t: ^testing.T) {
 		testing.expect_value(t, c.last_completion[0].detail, "function InputModule.get_axis(neg, pos)")
 	})
 }
+
+@(test)
+test_diagnostic_codes_are_kept_and_sent_back :: proc(t: ^testing.T) {
+	run_leak_free(t, proc(t: ^testing.T) {
+		c := client_init()
+		defer client_destroy(&c)
+		body := `{"jsonrpc":"2.0","method":"textDocument/publishDiagnostics","params":{"uri":"file:///t.lua","diagnostics":[` +
+			`{"range":{"start":{"line":0,"character":0},"end":{"line":0,"character":3}},"severity":2,"message":"Undefined global","code":"undefined-global"},` +
+			`{"range":{"start":{"line":1,"character":0},"end":{"line":1,"character":3}},"severity":1,"message":"numeric","code":2304},` +
+			`{"range":{"start":{"line":2,"character":0},"end":{"line":2,"character":3}},"severity":1,"message":"none"}]}}`
+		client_feed_bytes(&c, transmute([]u8)frame_message(body, context.temp_allocator))
+		d := client_diagnostics_for(&c, "file:///t.lua")
+		testing.expect_value(t, len(d), 3)
+		testing.expect_value(t, d[0].code, "undefined-global")
+		testing.expect_value(t, d[1].code, "2304")
+		testing.expect_value(t, d[2].code, "")
+		// Code actions get the codes (servers' "disable this diagnostic" fixes).
+		params := CodeActionParams{context_ = CodeActionContext{diagnostics = d}}
+		msg := encode_request(1, "textDocument/codeAction", params, context.temp_allocator)
+		testing.expect(t, strings.contains(msg, `"code":"undefined-global"`), msg)
+		testing.expect(t, strings.count(msg, `"code":`) == 2, msg)
+	})
+}

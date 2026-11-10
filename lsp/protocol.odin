@@ -200,6 +200,10 @@ Diagnostic :: struct {
 	severity: int    `json:"severity"`,
 	message:  string `json:"message"`,
 	source:   string `json:"source"`,
+	// The server's id of the check ("undefined-global"; numbers as text):
+	// shown with the message, and sent back with code actions, which
+	// servers need for "disable this diagnostic" fixes.
+	code:     string `json:"code,omitempty"`,
 	// From `tags`: 1 = Unnecessary (render faded), 2 = Deprecated
 	// (render struck through).
 	unnecessary: bool `json:"-"`,
